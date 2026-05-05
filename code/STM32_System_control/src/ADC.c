@@ -21,7 +21,7 @@ void ADC_Init(void){
 
     hadc1.Instance = ADC1;
     hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-    hadc1.Init.ContinuousConvMode = DISABLE; // <--- IMPORTANTE: Modo contínuo desligado
+    hadc1.Init.ContinuousConvMode = DISABLE; 
     hadc1.Init.DiscontinuousConvMode = DISABLE;
     hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START; // Início via software (manual)
     hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;

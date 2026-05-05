@@ -31,10 +31,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM2) {
         y = Read_ADC(); 
         
-        // Nota: para usar 'cntr' aqui, ela teria que ser global ou static
         u = Controller_Compute(&cntr, y); 
         
-        // 3. ATUAR
+        // ATUAR
         duty = (u / 3.3f) * 100.0f; 
         Set_PWM_Duty(duty);
     }
