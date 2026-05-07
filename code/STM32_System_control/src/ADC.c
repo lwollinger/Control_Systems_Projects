@@ -30,7 +30,7 @@ void ADC_Init(void){
         // Erro de inicialização
     }
 
-    // Configuração do Canal (Ex: Canal 0)
+    // Configuração do Canal 
     sConfig.Channel = ADC_CHANNEL_0;
     sConfig.Rank = 1;
     sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5; // Tempo de amostragem curto para controle

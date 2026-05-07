@@ -19,7 +19,7 @@ void Controller_Init(Controller_t *ctrl) {
         ctrl->erro[i] = 0.0f;
         ctrl->u[i] = 0.0f;
     }
-    ctrl->setpoint = 1.0f; // Ponto de operação desejado 
+    // ctrl->setpoint = 1.5f; // Ponto de operação desejado 
 }
 
 float Controller_Compute(Controller_t *ctrl, float y_medido) {

@@ -13,6 +13,10 @@ float y = 0.0f; // Variável global para armazenar a saída medida da planta (y[
 float u = 0.0f; // Variável global para armazenar a saída do controlador (u[n])
 float duty = 0.0f; // Variável global para armazenar o duty cycle calculado
 
+uint32_t ultimo_tempo = 0;
+const uint32_t intervalo = 100; // 100ms
+int flag = 0; // Variável para controlar a referência
+
 int main(void) {
     HAL_Init();
     //SystemClock_Config();
@@ -29,13 +33,28 @@ int main(void) {
 // Leitura do ADC e acionamento do controle a cada 4.4ms
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM2) {
+        uint32_t tempo_atual = HAL_GetTick();
+
+        // Malha de Controle (Executa a cada 4.4ms)
         y = Read_ADC(); 
-        
-        u = Controller_Compute(&cntr, y); 
-        
-        // ATUAR
-        duty = (u / 3.3f) * 100.0f; 
+        u = Controller_Compute(&cntr, y); // Passa a referência atual do controlador
+        duty = (u / 3.3f) * 100.0f;
         Set_PWM_Duty(duty);
+        
+        //___SETPOINT VARIÁVEL___
+        // Mudança de Referêcia, degrau 1V -> 1,5 | 1,5V -> 1V (Executa a cada 100ms) 
+        if ((tempo_atual - ultimo_tempo) >= intervalo) {
+            ultimo_tempo = tempo_atual;
+            
+            if(flag == 0) {
+                cntr.setpoint = 1.5f;
+                flag = 1; // Próxima vez cai no else
+            }
+            else {
+                cntr.setpoint = 1.0f;
+                flag = 0; // Próxima vez volta pro if
+            }
+        }
     }
 }
 
