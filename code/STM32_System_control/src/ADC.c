@@ -21,7 +21,7 @@ void ADC_Init(void){
 
     hadc1.Instance = ADC1;
     hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-    hadc1.Init.ContinuousConvMode = DISABLE; 
+    hadc1.Init.ContinuousConvMode = DISABLE; // <--- IMPORTANTE: Modo contínuo desligado
     hadc1.Init.DiscontinuousConvMode = DISABLE;
     hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START; // Início via software (manual)
     hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -40,17 +40,68 @@ void ADC_Init(void){
 
 }
 
-float Read_ADC(void) {
-    uint32_t raw_value = 0;
+// float Read_ADC(void) {
+//     // 1. Dispara a conversão do ADC1 direto no registrador (Bit SWSTART)
+//     ADC1->CR2 |= ADC_CR2_SWSTART;
     
-    HAL_ADC_Start(&hadc1); 
+//     // 2. Espera a conversão acabar (Bit EOC - End of Conversion)
+//     // Isso leva apenas cerca de 1.5 a 2 microssegundos, sem travar o chip!
+//     while (!(ADC1->SR & ADC_SR_EOC)) {
+//         // Espera o hardware processar a leitura analógica
+//     }
     
-    if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-        raw_value = HAL_ADC_GetValue(&hadc1);
+//     // 3. Pega o valor digitalizado de 12 bits (0 a 4095)
+//     // Ler o registrador DR limpa automaticamente a flag EOC no hardware
+//     uint32_t raw_value = ADC1->DR;
+
+//     // 4. Converte e retorna os Volts (0V a 3.3V)
+//     return ((float)raw_value * 3.3f) / 4095.0f;
+// }
+
+// float Read_ADC(void) {
+//     // 1. Garante que o ADC1 está ligado (Bit ADON)
+//     if (!(ADC1->CR2 & ADC_CR2_ADON)) {
+//         ADC1->CR2 |= ADC_CR2_ADON;
+//     }
+
+//     // 2. Dispara a conversão
+//     ADC1->CR2 |= ADC_CR2_SWSTART;
+    
+//     // 3. Loop com contador de segurança (Anti-travamento)
+//     uint32_t timeout = 1000;
+//     while (!(ADC1->SR & ADC_SR_EOC)) {
+//         timeout--;
+//         if (timeout == 0) {
+//             // Se o hardware do clone travar, saímos do loop para não matar o PWM
+//             return 0.0f; 
+//         }
+//     }
+    
+//     // 4. Lê o valor e limpa a flag
+//     uint32_t raw_value = ADC1->DR;
+
+//     return ((float)raw_value * 3.3f) / 4095.0f;
+// }
+
+// Altere o tipo de retorno de float para uint32_t
+uint32_t Read_ADC_Raw(void) {
+    // Liga o ADC se estiver desligado
+    if (!(ADC1->CR2 & ADC_CR2_ADON)) {
+        ADC1->CR2 |= ADC_CR2_ADON;
+    }
+
+    // Dispara a conversão
+    ADC1->CR2 |= ADC_CR2_SWSTART;
+    
+    // Timeout ultra-curto apenas para o teste
+    uint32_t timeout = 500;
+    while (!(ADC1->SR & ADC_SR_EOC)) {
+        timeout--;
+        if (timeout == 0) {
+            return 0; // Se falhar, retorna zero imediatamente
+        }
     }
     
-    HAL_ADC_Stop(&hadc1); 
-
-    // Converte os 12 bits (0-4095) para Volts (0-3.3V)
-    return (raw_value * 3.3f) / 4095.0f;
+    // Retorna o valor bruto (0 a 4095) sem fazer nenhuma conta de float!
+    return ADC1->DR;
 }

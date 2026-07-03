@@ -1,27 +1,20 @@
-#include <stdio.h>
-#include <stdint.h>
-#include "stm32f1xx_hal.h"
-
-TIM_HandleTypeDef htim2;
+#include "stm32f1xx.h" // Usa apenas as definições de hardware, sem o HAL
 
 void Timer_Init(void) {
-    __HAL_RCC_TIM2_CLK_ENABLE(); // Ativa o clock do Timer 2
+    // 1. Liga o Clock do Timer 2 no barramento APB1
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 
-    htim2.Instance = TIM2;
-    htim2.Init.Prescaler = 7199;         // Reduz 72MHz para 10kHz
-    htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim2.Init.Period = 42;              // Conta ate 42 para dar o T = 4.2ms
-    htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+    // 2. Configura a base de tempo para 4.2ms (Clock 72MHz)
+    TIM2->PSC = 71;          // Prescaler: 72MHz / 72 = 1MHz (1µs por tick)
+    TIM2->ARR = 4200;        // Auto-Reload: Conta até 4200 (4.2ms)
 
-    if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
-        // Erro
-    }
+    // 3. Habilita a interrupção de Update (Estouro do timer) direto no periférico
+    TIM2->DIER |= TIM_DIER_UIE;
 
-    // Ativa a interrupção do Timer
-    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM2_IRQn);
+    // 4. Configura a prioridade e liga a interrupção no núcleo ARM (NVIC)
+    NVIC_SetPriority(TIM2_IRQn, 0);
+    NVIC_EnableIRQ(TIM2_IRQn);
 
-    // Inicia o Timer com Interrupção
-    HAL_TIM_Base_Start_IT(&htim2);
+    // 5. Dá o "Play" no Timer
+    TIM2->CR1 |= TIM_CR1_CEN;
 }
