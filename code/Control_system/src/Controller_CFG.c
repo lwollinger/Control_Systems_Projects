@@ -1,10 +1,12 @@
 #include "Controller_CFG.h"
+#include "stdio.h"
 
 
 
 void Controller_Init(Controller_t *ctrl) {
     // Coeficientes do Numerador (b)
-    ctrl->K = 4.308500f;
+    //ctrl->K = 4.308500f;
+    ctrl->K = 4.308500f; // Ajuste do ganho para 50% da faixa de saída (0-3.3V)
     ctrl->b0 = 1.0f * ctrl->K;       // resultado = 4.308500f (ganho total do controlador)
     ctrl->b1 = -1.562f * ctrl->K;    // resultado = -6.733f (ganho total do controlador)
     ctrl->b2 = 0.6854f * ctrl->K;   // resultado = 2.951f (ganho total do controlador)
@@ -13,13 +15,22 @@ void Controller_Init(Controller_t *ctrl) {
     ctrl->a1 = -0.870289f;   
     ctrl->a2 = -0.129711f;   
 
+    // ctrl->b0 = 4.308500f;
+    // ctrl->b1 = -6.729877f;
+    // ctrl->b2 = 2.953046f;
+
+    // ctrl->a1 = -0.870300f;
+    // ctrl->a2 = -0.129700f;
+
+
+
 
     // Limpa os históricos
     for (int i = 0; i < 3; i++) {
         ctrl->erro[i] = 0.0f;
         ctrl->u[i] = 0.0f;
     }
-    ctrl->setpoint = 1.0f; // Ponto de operação desejado 
+    //ctrl->setpoint = 1.0f; // Ponto de operação desejado 
 }
 
 float Controller_Compute(Controller_t *ctrl, float y_medido) {
@@ -33,6 +44,8 @@ float Controller_Compute(Controller_t *ctrl, float y_medido) {
      */
     ctrl->u[0] = (ctrl->b0 * ctrl->erro[0]) + (ctrl->b1 * ctrl->erro[1]) + (ctrl->b2 * ctrl->erro[2]) - (ctrl->a1 * ctrl->u[1]) - (ctrl->a2 * ctrl->u[2]);
 
+
+    //printf("e0=%f e1=%f e2=%f\n", ctrl->erro[0], ctrl->erro[1], ctrl->erro[2]);
     // Saturação (Garante que a saída não passe dos limites do hardware 0-3.3V)
     if (ctrl->u[0] > 3.3f) ctrl->u[0] = 3.3f;
     else if (ctrl->u[0] < 0.0f) ctrl->u[0] = 0.0f;
