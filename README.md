@@ -4,7 +4,7 @@
 
 #  Digital Controller System
 
-This repository contains the implementation of a digital controller for an analog system using the STM32 microcontroller.
+This repository contains the implementation of a digital controller for an analog system using microcontroller.
 
  
 > Autor: Lucas Martins Wollinger
